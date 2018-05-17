@@ -26,6 +26,9 @@ export class Router {
   // it's updated through RouteTitle
   @Prop() titleSuffix: string = '';
 
+  // Prevent certain operations during ssr
+  @Prop({ context: 'isServer' }) private isServer: boolean;
+
   @Watch('titleSuffix')
   titleSuffixChanged(newValue: string) {
     this.activeRouter.set({
@@ -48,28 +51,31 @@ export class Router {
   }
 
   componentWillLoad() {
-    const history = HISTORIES[this.historyType]();
+    if (!this.isServer) {
+      const history = HISTORIES[this.historyType]();
 
-    history.listen((location: LocationSegments) => {
-      this.activeRouter.set({ location: this.getLocation(location) });
-    });
+      history.listen((location: LocationSegments) => {
+        this.activeRouter.set({ location: this.getLocation(location) });
+      });
 
-    this.activeRouter.set({
-      location: this.getLocation(history.location),
-      titleSuffix: this.titleSuffix,
-      root: this.root,
-      history
-    });
+      this.activeRouter.set({
+        location: this.getLocation(history.location),
+        titleSuffix: this.titleSuffix,
+        root: this.root,
+        history
+      });
 
-    // subscribe the project's active router and listen
-    // for changes. Recompute the match if any updates get
-    // pushed
-    this.unsubscribe = this.activeRouter.subscribe({
-      isMatch: this.computeMatch.bind(this),
-      listener: (matchResult: MatchResults) => {
-        this.match = matchResult;
-      },
-    });
+      // subscribe the project's active router and listen
+      // for changes. Recompute the match if any updates get
+      // pushed
+      this.unsubscribe = this.activeRouter.subscribe({
+        isMatch: this.computeMatch.bind(this),
+        listener: (matchResult: MatchResults) => {
+          this.match = matchResult;
+        },
+      });
+    }
+
     this.match = this.computeMatch();
   }
 
