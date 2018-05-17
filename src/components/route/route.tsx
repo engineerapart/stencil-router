@@ -61,7 +61,7 @@ export class Route {
       return new Promise((resolve) => {
         thisRoute.componentDidRerender = resolve;
       });
-    }
+    };
     this.unsubscribe = this.activeRouter.subscribe({
       isMatch: this.computeMatch.bind(this),
       listener,
@@ -126,6 +126,11 @@ export class Route {
 
   hostData() {
     if (!this.activeRouter || !this.match || (this.group && !this.activeInGroup)) {
+      console.log(
+        `Route [group:${this.group}] is setting display to none because: `,
+        !this.activeRouter ? 'No Router' : 'Has router',
+        !this.match ? 'No Match' : 'Has match',
+        (this.group && !this.activeInGroup) ? 'No active group' : 'Has active group');
       return {
         style: {
           display: 'none'
