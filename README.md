@@ -1,3 +1,8 @@
+This repo is for testing and development. Specifically I am trying to resolve the issue reported here:
+https://github.com/ionic-team/stencil-router/issues/36
+
+Do not install and use this repo's NPM package unless you know what you are doing.
+
 [![npm][npm-badge]][npm-badge-url]
 ## Stencil Router
 
