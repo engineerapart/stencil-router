@@ -68,6 +68,8 @@ export class Route {
       groupId: this.group,
       groupIndex: this.groupIndex
     });
+
+    this.match = this.computeMatch(); //
   }
 
   componentDidUnload() {
@@ -127,15 +129,22 @@ export class Route {
   hostData() {
     if (!this.activeRouter || !this.match || (this.group && !this.activeInGroup)) {
       console.log(
-        `Route [group:${this.group}] is setting display to none because: `,
+        `Route [group:${this.group}],[url:${this.url}] is setting display to none because: `,
         !this.activeRouter ? 'No Router' : 'Has router',
         !this.match ? 'No Match' : 'Has match',
         (this.group && !this.activeInGroup) ? 'No active group' : 'Has active group');
+
       return {
         style: {
           display: 'none'
         }
       };
+    } else {
+      console.log(
+        `Route [group:${this.group}],[url:${this.url}] is BEING SHOWN because: `,
+        !this.activeRouter ? 'No Router' : 'Has router',
+        !this.match ? 'No Match' : 'Has match',
+        (this.group && !this.activeInGroup) ? 'No active group' : 'Has active group');
     }
   }
 
