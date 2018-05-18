@@ -1,6 +1,6 @@
 {
   "name": "@engineerapart/stencil-router",
-  "version": "0.1.16",
+  "version": "0.1.18",
   "description": "Stencil Router",
   "module": "dist/collection/index.js",
   "main": "dist/stencilrouter.js",

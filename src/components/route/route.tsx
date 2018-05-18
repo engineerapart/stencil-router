@@ -57,9 +57,9 @@ export class Route {
     // for changes. Recompute the match if any updates get
     // pushed
     const listener = (matchResults: MatchResults) => {
-      this.match = matchResults;
       return new Promise((resolve) => {
         thisRoute.componentDidRerender = resolve;
+        thisRoute.match = matchResults;
       });
     };
     this.unsubscribe = this.activeRouter.subscribe({
@@ -69,9 +69,9 @@ export class Route {
       groupIndex: this.groupIndex
     });
 
-    this.match = this.computeMatch(); //
     // componentDidUpdate is not called on the server, so we need to set this here.
     if (this.isServer) {
+      this.match = this.computeMatch(); //
       this.activeInGroup = !!this.match;
     }
   }
