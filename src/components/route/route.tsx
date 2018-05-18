@@ -44,11 +44,13 @@ export class Route {
       pathname = location.pathname;
     }
 
-    return matchPath(pathname, {
+    const match = matchPath(pathname, {
       path: this.url,
       exact: this.exact,
       strict: true
     });
+    console.log(`Route for url:[${this.url}] computed match: `, match);
+    return match;
   }
 
   componentWillLoad() {
@@ -57,6 +59,7 @@ export class Route {
     // for changes. Recompute the match if any updates get
     // pushed
     const listener = (matchResults: MatchResults) => {
+      console.log(`Route for url:[${this.url}] received match results: `, matchResults);
       return new Promise((resolve) => {
         thisRoute.componentDidRerender = resolve;
         thisRoute.match = matchResults;
@@ -71,7 +74,7 @@ export class Route {
 
     // componentDidUpdate is not called on the server, so we need to set this here.
     if (this.isServer) {
-      this.match = this.computeMatch(); //
+      this.match = this.computeMatch();
       this.activeInGroup = !!this.match;
     }
   }
@@ -83,10 +86,12 @@ export class Route {
   }
 
   componentDidUpdate() {
+    console.log(`Route for url:[${this.url}] componentDidUpdate`);
     if (this.componentDidRerender) {
       // After route component has rendered then check if its child has.
       const childElement = this.el.firstElementChild as HTMLStencilElement;
       if (childElement && childElement.componentOnReady) {
+        console.log(`Route for url:[${this.url}] updating child after render with match: `, this.match);
 
         childElement.componentOnReady().then(() => {
           if (this.componentDidRerender) {
@@ -97,6 +102,7 @@ export class Route {
           this.scrollOnNextRender = this.activeInGroup;
         });
       } else {
+        console.log(`Route for url:[${this.url}] updating after render with match: `, this.match);
         // If there is no child then resolve the Promise immediately
         this.componentDidRerender();
         this.componentDidRerender = undefined;
