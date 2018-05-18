@@ -70,6 +70,10 @@ export class Route {
     });
 
     this.match = this.computeMatch(); //
+    // componentDidUpdate is not called on the server, so we need to set this here.
+    if (this.isServer) {
+      this.activeInGroup = !!this.match;
+    }
   }
 
   componentDidUnload() {
