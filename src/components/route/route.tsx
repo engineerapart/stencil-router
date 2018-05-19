@@ -59,7 +59,7 @@ export class Route {
     // for changes. Recompute the match if any updates get
     // pushed
     const listener = (matchResults: MatchResults) => {
-      console.log(`Route for url:[${this.url}] received match results: `, matchResults);
+      console.log(`Route for url:[${this.url}] received match results: `, this.match, matchResults);
       this.match = matchResults;
       return new Promise((resolve) => {
         thisRoute.componentDidRerender = resolve;
@@ -86,7 +86,7 @@ export class Route {
   }
 
   componentDidUpdate() {
-    console.log(`Route for url:[${this.url}] componentDidUpdate`);
+    console.log(`Route for url:[${this.url}] componentDidUpdate with match: `, this.match);
     if (this.componentDidRerender) {
       // After route component has rendered then check if its child has.
       const childElement = this.el.firstElementChild as HTMLStencilElement;
@@ -142,7 +142,7 @@ export class Route {
         `Route [group:${this.group}],[url:${this.url}] is setting display to none because: `,
         !this.activeRouter ? 'No Router' : 'Has router',
         !this.match ? 'No Match' : 'Has match',
-        (this.group && !this.activeInGroup) ? 'No active group' : 'Has active group');
+        (this.group && !this.activeInGroup) ? 'No active group' : 'Has active group', this.match);
 
       return {
         style: {
