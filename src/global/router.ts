@@ -7,7 +7,7 @@ Context.activeRouter = (function() {
   let state: { [key: string]: any } = {};
   const nextListeners: RouteSubscription[] = [];
 
-  function getDefaultState() {
+  function getDefaultState(): { [key: string]: any } {
     return {
       location: {
         pathname: Context.window.location.pathname,
@@ -26,7 +26,7 @@ Context.activeRouter = (function() {
 
   function get(attrName?: string) {
     if (Object.keys(state).length === 0) {
-      return getDefaultState();
+      return getDefaultState()[attrName];
     }
     if (!attrName) {
       return state;
