@@ -1,6 +1,6 @@
 {
   "name": "@engineerapart/stencil-router",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "description": "Stencil Router",
   "module": "dist/collection/index.js",
   "main": "dist/stencilrouter.js",
@@ -48,5 +48,8 @@
     },
     "testRegex": "/__tests__/.*(test|spec)\\.(ts|tsx)$"
   },
-  "homepage": "https://github.com/ionic-team/stencil-router"
+  "homepage": "https://github.com/ionic-team/stencil-router",
+  "publishConfig": {
+    "access": "public"
+  }
 }

@@ -60,9 +60,9 @@ export class Route {
     // pushed
     const listener = (matchResults: MatchResults) => {
       console.log(`Route for url:[${this.url}] received match results: `, matchResults);
+      this.match = matchResults;
       return new Promise((resolve) => {
         thisRoute.componentDidRerender = resolve;
-        thisRoute.match = matchResults;
       });
     };
     this.unsubscribe = this.activeRouter.subscribe({
