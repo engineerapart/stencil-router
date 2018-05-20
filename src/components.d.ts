@@ -443,6 +443,7 @@ declare global {
   namespace JSXElements {
     export interface StencilRouterAttributes extends HTMLAttributes {
       'historyType'?: HistoryType;
+      'onStencilRouterWillLoad'?: (event: CustomEvent) => void;
       'root'?: string;
       'titleSuffix'?: string;
     }

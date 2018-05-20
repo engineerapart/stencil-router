@@ -3,6 +3,7 @@ export interface ActiveRouter {
   set: (value: {[key: string]: any}) => void;
   get: (attrName?: string) => any;
   dispatch: () => void;
+  waitForRouter: () => Promise<any>;
 }
 
 export interface RouteSubscription {

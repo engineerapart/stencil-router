@@ -1,7 +1,8 @@
 import { Component, Prop, State, Element } from '@stencil/core';
 import { matchPath } from '../../utils/match-path';
 import { RouterHistory, ActiveRouter, Listener, LocationSegments, MatchResults } from '../../global/interfaces';
-import { QueueApi } from '@stencil/core/dist/declarations';
+// Restore this type once it is properly exposed by Stencil. The new ESM exports do not play nice here.
+// import { QueueApi } from '@stencil/core/dist/declarations';
 
 /**
   * @name Route
@@ -12,9 +13,10 @@ import { QueueApi } from '@stencil/core/dist/declarations';
   tag: 'stencil-route'
 })
 export class Route {
+
   @Prop({ context: 'activeRouter' }) activeRouter: ActiveRouter;
   @Prop({ context: 'location' }) location: Location;
-  @Prop({ context: 'queue'}) queue: QueueApi;
+  @Prop({ context: 'queue'}) queue: any; // QueueApi;
   @Prop({ context: 'isServer' }) private isServer: boolean;
 
   unsubscribe: Listener = () => { return; };
@@ -49,22 +51,32 @@ export class Route {
       exact: this.exact,
       strict: true
     });
-    console.log(`Route for url:[${this.url}] computed match: `, match);
     return match;
   }
 
-  componentWillLoad() {
-    const thisRoute = this;
+  async componentWillLoad() {
+    if (!this.isServer) {
+      // On client, after SSR, the elements already exist in the DOM. This means the
+      // browser initializes them much faster than client-side Stencil alone; this
+      // causes a race condition between the initial dispatch and the route resolution.
+      // To fix this, we make sure that the stencil-router component has properly
+      // initialized the router before we initialize routes. In standard client-side
+      // Stencil or prerendering, this has no effect since the router initializes first anyway.
+      await this.activeRouter.waitForRouter();
+    }
+
     // subscribe the project's active router and listen
     // for changes. Recompute the match if any updates get
     // pushed
     const listener = (matchResults: MatchResults) => {
-      console.log(`Route for url:[${this.url}] received match results: `, this.match, matchResults);
       this.match = matchResults;
+      this.activeInGroup = !!this.match;
+
       return new Promise((resolve) => {
-        thisRoute.componentDidRerender = resolve;
+        this.componentDidRerender = resolve;
       });
     };
+
     this.unsubscribe = this.activeRouter.subscribe({
       isMatch: this.computeMatch.bind(this),
       listener,
@@ -73,8 +85,8 @@ export class Route {
     });
 
     // componentDidUpdate is not called on the server, so we need to set this here.
+    this.match = this.computeMatch();
     if (this.isServer) {
-      this.match = this.computeMatch();
       this.activeInGroup = !!this.match;
     }
   }
@@ -86,27 +98,21 @@ export class Route {
   }
 
   componentDidUpdate() {
-    console.log(`Route for url:[${this.url}] componentDidUpdate with match: `, this.match);
     if (this.componentDidRerender) {
       // After route component has rendered then check if its child has.
       const childElement = this.el.firstElementChild as HTMLStencilElement;
       if (childElement && childElement.componentOnReady) {
-        console.log(`Route for url:[${this.url}] updating child after render with match: `, this.match);
-
         childElement.componentOnReady().then(() => {
           if (this.componentDidRerender) {
             this.componentDidRerender();
           }
           this.componentDidRerender = undefined;
-          this.activeInGroup = !!this.match;
           this.scrollOnNextRender = this.activeInGroup;
         });
       } else {
-        console.log(`Route for url:[${this.url}] updating after render with match: `, this.match);
         // If there is no child then resolve the Promise immediately
         this.componentDidRerender();
         this.componentDidRerender = undefined;
-        this.activeInGroup = !!this.match;
         this.scrollOnNextRender = this.activeInGroup;
       }
 
@@ -138,23 +144,11 @@ export class Route {
 
   hostData() {
     if (!this.activeRouter || !this.match || (this.group && !this.activeInGroup)) {
-      console.log(
-        `Route [group:${this.group}],[url:${this.url}] is setting display to none because: `,
-        !this.activeRouter ? 'No Router' : 'Has router',
-        !this.match ? 'No Match' : 'Has match',
-        (this.group && !this.activeInGroup) ? 'No active group' : 'Has active group', this.match);
-
       return {
         style: {
           display: 'none'
         }
       };
-    } else {
-      console.log(
-        `Route [group:${this.group}],[url:${this.url}] is BEING SHOWN because: `,
-        !this.activeRouter ? 'No Router' : 'Has router',
-        !this.match ? 'No Match' : 'Has match',
-        (this.group && !this.activeInGroup) ? 'No active group' : 'Has active group');
     }
   }
 

@@ -1,7 +1,7 @@
-import { Component, Prop, State, Watch } from '@stencil/core';
+import { Component, State, Prop, Watch, Event, EventEmitter } from '@stencil/core';
 import createHistory from '../../utils/createBrowserHistory';
 import createHashHistory from '../../utils/createHashHistory';
-import { ActiveRouter, LocationSegments, MatchResults, HistoryType} from '../../global/interfaces';
+import { ActiveRouter, LocationSegments, HistoryType, MatchResults } from '../../global/interfaces';
 
 
 const HISTORIES: { [key in HistoryType]: Function } = {
@@ -18,6 +18,9 @@ const HISTORIES: { [key in HistoryType]: Function } = {
   tag: 'stencil-router'
 })
 export class Router {
+
+  @Event() stencilRouterWillLoad: EventEmitter;
+
   @Prop() root: string = '/';
 
   @Prop() historyType: HistoryType = 'browser';
@@ -42,6 +45,7 @@ export class Router {
 
   @State() match: MatchResults | null = null;
 
+
   computeMatch(pathname?: string) {
     return {
       path: this.root,
@@ -52,6 +56,7 @@ export class Router {
   }
 
   componentWillLoad() {
+    console.log('Router componentWillLoad');
     let location = this.isServer ? this.ctxLocation : {};
     let history = null;
 
@@ -59,7 +64,10 @@ export class Router {
       history = HISTORIES[this.historyType]();
       location = history.location;
 
+      console.log('Router setting initial location: ', location);
+
       history.listen((location: LocationSegments) => {
+        console.log('Router received history event: ', location);
         this.activeRouter.set({ location: this.getLocation(location) });
       });
     }
@@ -82,9 +90,13 @@ export class Router {
     });
 
     this.match = this.computeMatch();
+
+    console.log('Router componentWillLoad: emitting event');
+    this.stencilRouterWillLoad.emit(location);
   }
 
   componentDidLoad() {
+    console.log('Router did load, dispatching activeRouter');
     this.activeRouter.dispatch();
   }
 

@@ -1,9 +1,27 @@
 import { ActiveRouter, Listener, RouteSubscription, MatchResults } from './interfaces';
 import { shallowEqual } from '../utils/shallow-equal';
+import { canUseDOM } from '../utils/dom-utils';
 
 declare var Context: any;
 
+let routerHasLoaded: boolean = false;
+let routerWaitPromise: Promise<any> = null;
+// Adapted from ionic-router
+function waitUntilRouter() {
+  if (!canUseDOM || routerHasLoaded) { return Promise.resolve(null); }
+  if (routerWaitPromise) { return routerWaitPromise; }
+
+  routerWaitPromise = new Promise((resolve) => {
+    window.addEventListener('stencilRouterWillLoad', (data) => {
+      routerHasLoaded = true;
+      resolve(data);
+    }, { once: true }); //
+  });
+  return routerWaitPromise;
+}
+
 Context.activeRouter = (function() {
+  let init: boolean = false;
   let state: { [key: string]: any } = {};
   const nextListeners: RouteSubscription[] = [];
 
@@ -16,7 +34,16 @@ Context.activeRouter = (function() {
     };
   }
 
+  function waitForRouter(): Promise<any> {
+    return waitUntilRouter();
+  }
+
   function set(value: { [key: string]: any }) {
+    if (!init) {
+      init = true;
+      // Initialize the router listener before the router raises its event.
+      waitUntilRouter();
+    }
     state = {
       ...state,
       ...value
@@ -42,16 +69,16 @@ Context.activeRouter = (function() {
     // Assume listeners are ordered by group and then groupIndex
     for (let i = 0; i < listeners.length; i++) {
       let match = null;
+      // Check if this listener belongs to a route that matches, and is part of a group.
       const isGroupMatch = matchList.some(me => {
-        return me[1] != null && me[2] != null && me[2] === listeners[i].groupId;
+        return me[1] && me[2] && me[2] === listeners[i].groupId;
       });
 
-      // If listener has a groupId and group already has a match then don't check
+      // If we don't have a match in the group, check this listener for a match
       if (!isGroupMatch) {
         match = listeners[i].isMatch(pathname);
-
-      // If listener does not have a group then just check if it matches
       } else {
+        // Otherwise we already have a match, so do not calculate one for this listener
         match = null;
       }
 
@@ -64,8 +91,9 @@ Context.activeRouter = (function() {
       }
       listeners[i].lastMatch = match;
     }
+
     for (const [listenerIndex, matchResult, groupId] of matchList) {
-      if (groupId && matchResult != null) {
+      if (groupId && matchResult) {
         await listeners[listenerIndex].listener(matchResult);
       } else {
         listeners[listenerIndex].listener(matchResult);
@@ -92,8 +120,13 @@ Context.activeRouter = (function() {
           nextListeners.splice(i, 0, routeSubscription);
           break;
         }
-        if (groupId === routeSubscription.groupId && groupIndex > routeSubscription.groupIndex) {
-          nextListeners.splice(i, 0, routeSubscription);
+
+        if (groupId === routeSubscription.groupId) {
+          if (groupIndex > routeSubscription.groupIndex) {
+            nextListeners.splice(i, 0, routeSubscription); // insert before
+          } else {
+            nextListeners.splice(i + 1, 0, routeSubscription); // insert after
+          }
           break;
         }
       }
@@ -130,6 +163,7 @@ Context.activeRouter = (function() {
     set,
     get,
     subscribe,
-    dispatch
+    dispatch,
+    waitForRouter
   } as ActiveRouter;
 })();

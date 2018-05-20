@@ -52,5 +52,5 @@ export const RouterSwitch: FunctionalComponent<ComponentProps> = ({ children, sc
     <div>
       { chil }
     </div>
-  )
+  );
 };
