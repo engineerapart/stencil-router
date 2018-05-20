@@ -1,11 +1,10 @@
 {
   "name": "@engineerapart/stencil-router",
-  "version": "0.1.44",
+  "version": "0.1.49",
   "description": "Stencil Router",
   "module": "dist/collection/index.js",
-  "main": "dist/stencilrouter.js",
+  "main": "dist/index.js",
   "unpkg": "dist/stencilrouter.js",
-  "browser": "dist/stencilrouter.js",
   "types": "dist/types/index.d.ts",
   "collection": "dist/collection/collection-manifest.json",
   "files": [
@@ -24,7 +23,7 @@
     "url": "git+https://github.com/ionic-team/stencil-router.git"
   },
   "devDependencies": {
-    "@stencil/core": "^0.8.1",
+    "@stencil/core": "^0.9.1",
     "@stencil/dev-server": "latest",
     "@stencil/utils": "latest",
     "@types/jest": "^20.0.8",
